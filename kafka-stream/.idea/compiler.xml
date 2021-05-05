@@ -7,11 +7,13 @@
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
         <module name="kafka-clients-solution" />
+        <module name="kafka-streams-solution" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
       <module name="kafka-clients-solution" target="11" />
       <module name="kafka-streams" target="11" />
+      <module name="kafka-streams-solution" target="11" />
     </bytecodeTargetLevel>
   </component>
 </project>

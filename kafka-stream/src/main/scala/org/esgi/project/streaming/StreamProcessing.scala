@@ -16,6 +16,9 @@ object StreamProcessing extends PlayJsonSupport {
   import org.apache.kafka.streams.scala.ImplicitConversions._
   import org.apache.kafka.streams.scala.serialization.Serdes._
 
+  //val yourFirstName: String = "Arnaud"
+  //val yourLastName: String = "Simon"
+
   val applicationName = "web-events-stream-app-teacher-2"
   val visitsTopicName: String = "visits"
   val metricsTopicName: String = "metrics"
