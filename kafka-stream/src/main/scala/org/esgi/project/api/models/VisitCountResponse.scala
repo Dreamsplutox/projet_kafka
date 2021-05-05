@@ -3,7 +3,7 @@ package org.esgi.project.api.models
 import play.api.libs.json.{Json, OFormat}
 
 case class VisitCountResponse(
-                       url: String,
+                       view_category: String,
                        count: Long
                      )
 

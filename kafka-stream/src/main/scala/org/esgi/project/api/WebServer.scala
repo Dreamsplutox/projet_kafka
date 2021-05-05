@@ -21,7 +21,7 @@ import scala.jdk.CollectionConverters._
 object WebServer extends PlayJsonSupport {
   def routes(streams: KafkaStreams): Route = {
     concat(
-      path("visits" / Segment) { period: String =>
+      path("views" / Segment) { period: String =>
         get {
           period match {
             case "30s" =>
@@ -39,7 +39,7 @@ object WebServer extends PlayJsonSupport {
 
               complete(
                 availableKeys
-                  .map(storeKeyToVisitCount(kvStore30Seconds, fromTime, toTime))
+                  .map(storeKeyToViewCount(kvStore30Seconds, fromTime, toTime))
                   .sortBy(_.count)(implicitly[Ordering[Long]].reverse)
               )
             case "1m" =>
@@ -54,7 +54,7 @@ object WebServer extends PlayJsonSupport {
 
               complete(
                 availableKeys
-                  .map(storeKeyToVisitCount(kvStore1Minute, fromTime, toTime))
+                  .map(storeKeyToViewCount(kvStore1Minute, fromTime, toTime))
                   .sortBy(_.count)(implicitly[Ordering[Long]].reverse)
               )
             case "5m" =>
@@ -69,7 +69,7 @@ object WebServer extends PlayJsonSupport {
 
               complete(
                 availableKeys
-                  .map(storeKeyToVisitCount(kvStore5Minute, fromTime, toTime))
+                  .map(storeKeyToViewCount(kvStore5Minute, fromTime, toTime))
                   .sortBy(_.count)(implicitly[Ordering[Long]].reverse)
               )
             case _ =>
@@ -79,8 +79,8 @@ object WebServer extends PlayJsonSupport {
               )
           }
         }
-      },
-      path("visits-per-category" / Segment) { period: String =>
+      }//,
+      /*path("visits-per-category" / Segment) { period: String =>
         get {
           period match {
             case "30s" =>
@@ -135,7 +135,8 @@ object WebServer extends PlayJsonSupport {
               )
           }
         }
-      },
+      },*/
+      /*
       path("latency" / "beginning") {
         get {
           // load our materialized store
@@ -150,11 +151,16 @@ object WebServer extends PlayJsonSupport {
               .sortBy(_.meanLatency)(implicitly[Ordering[Long]].reverse)
           )
         }
-      }
+      }*/
     )
   }
 
-  def storeKeyToVisitCount(store: ReadOnlyWindowStore[String, Long], from: Instant, to: Instant)(key: String): VisitCountResponse = {
+  def storeKeyToViewCount(store: ReadOnlyWindowStore[String, Long], from: Instant, to: Instant)(key: String): VisitCountResponse = {
+    val row: WindowStoreIterator[Long] = store.fetch(key, from, to)
+    VisitCountResponse(view_category = key, count = row.asScala.toList.last.value)
+  }
+
+  /*def storeKeyToVisitCount(store: ReadOnlyWindowStore[String, Long], from: Instant, to: Instant)(key: String): VisitCountResponse = {
     val row: WindowStoreIterator[Long] = store.fetch(key, from, to)
     VisitCountResponse(url = key, count = row.asScala.toList.last.value)
   }
@@ -162,5 +168,5 @@ object WebServer extends PlayJsonSupport {
   def storeKeyToMeanLatencyForURL(store: ReadOnlyKeyValueStore[String, MeanLatencyForURL])(key: String): MeanLatencyForURLResponse = {
     val row: MeanLatencyForURL = store.get(key)
     MeanLatencyForURLResponse(url = key, meanLatency = row.meanLatency)
-  }
+  }*/
 }

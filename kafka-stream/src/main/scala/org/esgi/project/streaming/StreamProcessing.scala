@@ -5,7 +5,7 @@ import org.apache.kafka.streams.KafkaStreams
 import org.apache.kafka.streams.kstream.{JoinWindows, TimeWindows, Windowed}
 import org.apache.kafka.streams.scala._
 import org.apache.kafka.streams.scala.kstream._
-import org.esgi.project.streaming.models.{MeanLatencyForURL, Metric, Visit, VisitWithLatency}
+import org.esgi.project.streaming.models.{MeanLatencyForURL, View, Like, VisitWithLatency}
 
 import java.io.InputStream
 import java.time.Duration
@@ -19,9 +19,9 @@ object StreamProcessing extends PlayJsonSupport {
   //val yourFirstName: String = "Arnaud"
   //val yourLastName: String = "Simon"
 
-  val applicationName = "web-events-stream-app-teacher-2"
-  val visitsTopicName: String = "visits"
-  val metricsTopicName: String = "metrics"
+  val applicationName = "movies-streaming-group5"
+  val viewsTopicName: String = "views"
+  val likesTopicName: String = "likes"
 
   val thirtySecondsStoreName: String = "VisitsOfLast30Seconds"
   val lastMinuteStoreName = "VisitsOfLastMinute"
@@ -30,7 +30,7 @@ object StreamProcessing extends PlayJsonSupport {
   val thirtySecondsByCategoryStoreName: String = "VisitsOfLast30SecondsByCategory"
   val lastMinuteByCategoryStoreName = "VisitsOfLastMinuteByCategory"
   val lastFiveMinutesByCategoryStoreName = "VisitsOfLast5MinutesByCategory"
-  val meanLatencyForURLStoreName = "MeanLatencyForURL"
+  //val meanLatencyForURLStoreName = "MeanLatencyForURL"
 
   val props: Properties = buildProperties
 
@@ -38,28 +38,28 @@ object StreamProcessing extends PlayJsonSupport {
   val builder: StreamsBuilder = new StreamsBuilder
 
   // topic sources
-  val visits: KStream[String, Visit] = builder.stream[String, Visit](visitsTopicName)
-  val metrics: KStream[String, Metric] = builder.stream[String, Metric](metricsTopicName)
+  val views: KStream[String, View] = builder.stream[String, View](viewsTopicName)
+  val likes: KStream[String, Like] = builder.stream[String, Like](likesTopicName)
 
   /**
    * -------------------
    * Part.1 of exercise
    * -------------------
    */
-  // Repartitioning visits with visit URL as key, then group them by key
-  val visitsGroupedByUrl: KGroupedStream[String, Visit] = visits
-    .map((_, visit) => (visit.url, visit))
+  // Repartitioning views with view_category as key, then group them by key
+  val viewsGroupedByCategory: KGroupedStream[String, View] = views
+    .map((_, view) => (view.view_category, view))
     .groupByKey
 
-  val visitsOfLast30Seconds: KTable[Windowed[String], Long] = visitsGroupedByUrl
+  val visitsOfLast30Seconds: KTable[Windowed[String], Long] = viewsGroupedByCategory
     .windowedBy(TimeWindows.of(Duration.ofSeconds(30)).advanceBy(Duration.ofSeconds(1)))
     .count()(Materialized.as(thirtySecondsStoreName))
 
-  val visitsOfLast1Minute: KTable[Windowed[String], Long] = visitsGroupedByUrl
+  val visitsOfLast1Minute: KTable[Windowed[String], Long] = viewsGroupedByCategory
     .windowedBy(TimeWindows.of(Duration.ofMinutes(1)).advanceBy(Duration.ofMinutes(1)))
     .count()(Materialized.as(lastMinuteStoreName))
 
-  val visitsOfLast5Minute: KTable[Windowed[String], Long] = visitsGroupedByUrl
+  val visitsOfLast5Minute: KTable[Windowed[String], Long] = viewsGroupedByCategory
     .windowedBy(TimeWindows.of(Duration.ofMinutes(5)).advanceBy(Duration.ofMinutes(1)))
     .count()(Materialized.as(lastFiveMinutesStoreName))
 
@@ -68,6 +68,7 @@ object StreamProcessing extends PlayJsonSupport {
    * Part.2 of exercise
    * -------------------
    */
+  /*
   val visitsGroupedByCategory: KGroupedStream[String, Visit] = visits
     .map((_, visit) => (visit.url.split("/")(1), visit))
     .groupByKey(Grouped.`with`)
@@ -95,6 +96,8 @@ object StreamProcessing extends PlayJsonSupport {
     .aggregate(MeanLatencyForURL.empty) { (_, newVisitWithLatency, accumulator) =>
       accumulator.increment(latency = newVisitWithLatency.latency).computeMeanLatency
     }(Materialized.as(meanLatencyForURLStoreName))
+
+  */
 
   def run(): KafkaStreams = {
     val streams: KafkaStreams = new KafkaStreams(builder.build(), props)
