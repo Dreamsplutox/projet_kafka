@@ -1,1 +1,1 @@
-# projet_kafka (cours ESGI avril 2021)
+# projet_kafka (semaine thématique ESGI avril 2021)
